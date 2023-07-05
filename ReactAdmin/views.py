@@ -5,7 +5,7 @@ from .serializers import *
 from .models import Respondent
 from django.contrib.auth import authenticate
 from django.http import JsonResponse
-from .Excel_handler import extract_from_excel
+from .Excel_handler import extract_from_excel, generate_api_project
 import os
 from django.shortcuts import render
 
@@ -16,6 +16,18 @@ def show_admin(request):
     return render(request,"index.html")
 
 # Create your views here.
+@api_view(['GET'])
+def get_overview(request):
+    if request.method == 'GET':
+        project = Project.objects.all().count()
+        respondent = Respondent.objects.all().count()
+        coworker = User.objects.all().count()
+
+        data = {"project": project, "respondent": respondent, "coworker":coworker}
+        
+        return JsonResponse(data,safe = False)
+    return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
 @api_view(['GET'])
 def get_respondent(request):
     if request.method == 'GET':
@@ -64,6 +76,16 @@ def delete_respondent(request):
     return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 @api_view(['POST'])
+def delete_project(request):
+    if request.method == 'POST':
+        id = request.data['id']
+        print(Project.objects.filter(id=id))
+        Project.objects.filter(id=id).delete()
+        return Response(status=status.HTTP_200_OK)
+   
+    return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+@api_view(['POST'])
 def login(request):
     if request.method == 'POST':
         user = authenticate(username=request.data['username'], password=request.data['password'])
@@ -107,7 +129,8 @@ def create_project_by_excel(request):
             'name': request.POST['name'],
             'audience_age' : request.POST['audience'],
             'desc' : request.POST['desc'],
-            'questions' : extract_from_excel(request.FILES['file'])
+            'questions' : extract_from_excel(request.FILES['file']),
+            'url': generate_api_project()
         }
         serializer = ProjectSerializer(data=data)
         if serializer.is_valid():

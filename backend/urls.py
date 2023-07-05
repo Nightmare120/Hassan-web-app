@@ -22,6 +22,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     re_path('login',views.login),
     re_path('user/create',views.create_user),
+    re_path('overview',views.get_overview),
     re_path('user/all',views.all_user),
 
     re_path('user/delete',views.delete_user),
@@ -40,6 +41,7 @@ urlpatterns = [
     re_path('project/update',views.update_project),
     re_path('project/respondent',views.get_project_respondent),
     re_path('project/questions',views.get_questions),
+    re_path('project/delete',views.delete_project),
     re_path('project/*',views.show_chat),
     re_path('',views.show_admin)
     

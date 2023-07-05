@@ -1,5 +1,7 @@
 import openpyxl
 import json
+import string
+import random
 
 def extract_from_excel(file):
     sheet_json = []
@@ -13,3 +15,9 @@ def extract_from_excel(file):
             str(columns[0].value):str(columns[1].value)
         })
     return json.dumps(sheet_json)
+
+
+def generate_api_project():
+    size = 12
+    res = "".join(random.choices(string.ascii_letters,k=size))
+    return res
