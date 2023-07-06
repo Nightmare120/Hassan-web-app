@@ -15,3 +15,4 @@ class Project(models.Model):
     total_respondent = models.IntegerField(default=0)
     questions = models.TextField()
     url = models.CharField(max_length=500)
+    creator = models.TextField()

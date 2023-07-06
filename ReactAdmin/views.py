@@ -8,6 +8,8 @@ from django.http import JsonResponse
 from .Excel_handler import extract_from_excel, generate_api_project
 import os
 from django.shortcuts import render
+import json
+from .Keyword_handler import get_conversation_with_keywords
 
 def show_chat(request):
     return render(request,"chatpage.html")
@@ -42,7 +44,7 @@ def get_respondent(request):
 def save_respondent(request):
 
     data = {
-        'name' : request.data['name'] , 'project' : request.data['project'], 'date' : request.data['date'], 'conversation' : request.data['conversation']
+        'name' : request.data['name'] , 'project' : request.data['project'], 'date' : request.data['date'], 'conversation' : json.dumps(get_conversation_with_keywords(json.loads(request.data['conversation'])))
     }
 
     print(data)
@@ -125,12 +127,17 @@ def all_user(request):
 @api_view(['POST'])
 def create_project_by_excel(request):
     if request.method == "POST":
+        dataOfUser = json.loads(request.POST['user_details'])
+        username = dataOfUser['username']
+        password = dataOfUser['password']
+        print(dataOfUser)
         data = {
             'name': request.POST['name'],
             'audience_age' : request.POST['audience'],
             'desc' : request.POST['desc'],
             'questions' : extract_from_excel(request.FILES['file']),
-            'url': generate_api_project()
+            'url': generate_api_project(),
+            'creator': f'"username":"{username}","password":"{password}"'
         }
         serializer = ProjectSerializer(data=data)
         if serializer.is_valid():
@@ -176,15 +183,30 @@ def get_directory(path):
     return str(path).split("/")[0]
     
 
-@api_view(['GET'])
+@api_view(['POST'])
 def get_projects(request):
-    if request.method == 'GET':
+    if request.method == 'POST':
+        username = request.data['username']
+        password = request.data['password']
+
+        if not check_for_superuser(username,password):
+            # query = json.dumps({"username": username, "password": password})
+            print(f'"username":"{username}","password":"{password}"')
+            data = Project.objects.filter(creator=f'"username":"{username}","password":"{password}"')
+            serializer = ProjectSerializer(data, context={'request': request}, many=True)
+            return Response(serializer.data)
+
         data = Project.objects.all()
 
         serializer = ProjectSerializer(data, context={'request': request}, many=True)
 
         return Response(serializer.data)
     return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+def check_for_superuser(username,password):
+    user  = authenticate(username=username, password=password)
+        # print(user.password)
+    return User.objects.get(username=user.get_username(),password=user.password).is_superuser
 
 @api_view(['POST'])
 def get_project_respondent(request):
