@@ -50,8 +50,16 @@ def save_respondent(request):
     print(data)
 
     serializer = RespondentSerializer(data=data)
-    if serializer.is_valid():
+    project =  Project.objects.get(name=request.data['project'])
+    
+    if serializer.is_valid() and project.current_respondent < project.total_respondent:
         serializer.save()
+        project.current_respondent = project.current_respondent + 1
+        project.save(update_fields=['current_respondent'])
+        
+        project.url =  project.url + str(project.current_respondent) 
+        project.save(update_fields=['url'])
+
         return Response(status=status.HTTP_201_CREATED)
 
     return Response(status=status.HTTP_103_EARLY_HINTS)
@@ -135,6 +143,8 @@ def create_project_by_excel(request):
             'name': request.POST['name'],
             'audience_age' : request.POST['audience'],
             'desc' : request.POST['desc'],
+            'total_respondent':request.POST['total_respondent'],
+            'allow_images': convertIntoPythonBoolean(request.POST['allowImgVideos']),
             'questions' : extract_from_excel(request.FILES['file']),
             'url': generate_api_project(),
             'creator': f'"username":"{username}","password":"{password}"'
@@ -147,6 +157,11 @@ def create_project_by_excel(request):
     
     return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
+def convertIntoPythonBoolean(value):
+    if value == "true":
+        return True
+    else:
+        return False
 
 @api_view(['POST'])
 def update_project(request):
@@ -166,6 +181,16 @@ def update_project(request):
         return Response(status=status.HTTP_200_OK)
     
     return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+@api_view(['POST'])
+def save_files(request):
+        if request.method == "POST":
+            for file in request.FILES:
+                write_project_file(path=file,f=request.FILES[file])
+                print(file,request.FILES[file],end="\n\n")
+            return Response(status=status.HTTP_200_OK)
+        
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 def write_project_file(path,f):
     directry = get_directory(path)

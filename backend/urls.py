@@ -29,6 +29,7 @@ urlpatterns = [
     re_path('respondent/get',views.get_respondent),
     re_path('respondent/save',views.save_respondent),
     re_path('respondent/view_conversation',views.view_conversation),
+    re_path('respondent/files',views.save_files),
     
     # to be  check
     re_path('respondent/delete',views.delete_respondent),

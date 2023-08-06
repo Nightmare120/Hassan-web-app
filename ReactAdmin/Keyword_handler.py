@@ -27,8 +27,9 @@ def get_conversation_with_keywords(conversation):
 
     for response in conversation:
         data = {
-            "res": response,
-            "keywords": get_keywords(response)
+            "res": response['txt'],
+            "url": response['url'],
+            "keywords": get_keywords( response['txt'])
         }
         print(get_keywords(response),end="\n\n\n")
         conversation_with_keyword.append(data)

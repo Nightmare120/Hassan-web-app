@@ -13,6 +13,8 @@ class Project(models.Model):
     desc = models.CharField(max_length=500)
     status = models.IntegerField(default=0)
     total_respondent = models.IntegerField(default=0)
+    current_respondent = models.IntegerField(default=0)
+    allow_images = models.BooleanField(default=False)
     questions = models.TextField()
     url = models.CharField(max_length=500)
     creator = models.TextField()
